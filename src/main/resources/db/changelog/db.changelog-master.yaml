@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include:
+      file: ./changeset/create-wallet-table.yaml

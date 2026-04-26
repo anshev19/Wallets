@@ -1,0 +1,50 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    restart: none
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/wallet_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+
+  liquibase:
+    image: liquibase/liquibase:4.27.0
+    volumes:
+      - ./src/main/resources/db/changelog:/liquibase/changelog
+    restart: on-failure
+    command:
+      - --url=jdbc:postgresql://database:5432/wallet_db
+      - --username=postgres
+      - --password=postgres
+      - --classpath=/liquibase/changelog
+      - --changeLogFile=db.changelog-master.yaml
+      - update
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: postgres:15.7-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wallet_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infrastructure/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
+      - db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d wallet_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:

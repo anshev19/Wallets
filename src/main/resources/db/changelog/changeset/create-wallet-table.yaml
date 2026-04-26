@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-wallet
+      author: Alexander Shevchenko
+      changes:
+        - createTable:
+            tableName: wallet
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_wallet
+                  defaultValueComputed: gen_random_uuid()
+              - column:
+                  name: balance
+                  type: bigint
+                  constraints:
+                    nullable: false
